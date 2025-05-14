@@ -21,3 +21,17 @@ public class RentalRecord extends Vehicle {
         this.payment = payment;
         this.addons = addons;
     }
+    public String getCustomerName() { return customerName; }
+    public String getRentalDate() { return rentalDate; }
+    public String getReturnDate() { return returnDate; }
+    public void setReturnDate(String returnDate) { this.returnDate = returnDate; }
+    public boolean isReturned() { return returned; }
+    public void setReturned(boolean returned) { this.returned = returned; }
+    public String getIdCardNumber() { return idCardNumber; }
+    public int getDays() { return days; }
+    public void setDays(int days) { this.days = days; }
+    public Payment getPayment() { return payment; }
+    public void setPayment(Payment payment) { this.payment = payment; }
+    public List<String> getAddons() { return addons; }
+    public void setAddons(List<String> addons) { this.addons = addons; }
+}  

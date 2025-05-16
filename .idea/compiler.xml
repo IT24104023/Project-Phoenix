@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="projectF" />
         <module name="vehiclelast" />
+        <module name="Project-Phoenix" />
       </profile>
     </annotationProcessing>
   </component>

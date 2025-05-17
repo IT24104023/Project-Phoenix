@@ -6,9 +6,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="projectF" />
         <module name="vehiclelast" />
         <module name="Project-Phoenix" />
+        <module name="project" />
+        <module name="projectF" />
       </profile>
     </annotationProcessing>
   </component>

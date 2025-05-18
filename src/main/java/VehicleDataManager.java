@@ -268,4 +268,146 @@ public class VehicleDataManager {
         }
     }
 
+    public void updatePayment(String id, String rentalDate, Payment payment) throws IOException {
+        LinkedList<RentalRecord> records = getRentalRecords();
+        File file = new File(RENTAL_FILE_WRITABLE);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        boolean recordFound = false;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (RentalRecord r : records) {
+                if (r.getId().equals(id) && r.getRentalDate().equals(rentalDate)) {
+                    r.setPayment(payment);
+                    writer.write(r.getId() + "," + r.getModel() + "," +
+                            r.getRentPrice() + "," + r.getCustomerName() + "," +
+                            r.getIdCardNumber() + "," + r.getRentalDate() + "," +
+                            (r.getReturnDate() != null ? r.getReturnDate() : "") + "," +
+                            r.isReturned() + "," + r.getDays() + "," +
+                            (r.getPayment() != null ? r.getPayment().getMethod() : "") + "," +
+                            (r.getAddons() != null ? String.join(";", r.getAddons()) : ""));
+                    recordFound = true;
+                } else {
+                    writer.write(r.getId() + "," + r.getModel() + "," +
+                            r.getRentPrice() + "," + r.getCustomerName() + "," +
+                            r.getIdCardNumber() + "," + r.getRentalDate() + "," +
+                            (r.getReturnDate() != null ? r.getReturnDate() : "") + "," +
+                            r.isReturned() + "," + r.getDays() + "," +
+                            (r.getPayment() != null ? r.getPayment().getMethod() : "") + "," +
+                            (r.getAddons() != null ? String.join(";", r.getAddons()) : ""));
+                }
+                writer.newLine();
+            }
+            if (!recordFound) {
+                throw new IOException("Rental record not found for ID: " + id + " and date: " + rentalDate);
+            }
+            System.out.println("Successfully updated payment for rental with ID: " + id + " and date: " + rentalDate);
+        } catch (IOException e) {
+            System.err.println("Error writing to rentals file: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public void deletePayment(String id, String rentalDate) throws IOException {
+        LinkedList<RentalRecord> records = getRentalRecords();
+        File rentalFile = new File(RENTAL_FILE_WRITABLE);
+        if (!rentalFile.exists()) {
+            rentalFile.createNewFile();
+        }
+
+        // Find the rental record to get vehicle details before deleting
+        RentalRecord targetRecord = null;
+        for (RentalRecord r : records) {
+            if (r.getId().equals(id) && r.getRentalDate().equals(rentalDate)) {
+                targetRecord = r;
+                break;
+            }
+        }
+
+        if (targetRecord != null) {
+            // Mark the vehicle as available
+            Vehicle[] vehicles = readVehicles();
+            File vehicleFile = new File(VEHICLE_FILE_WRITABLE);
+            if (!vehicleFile.exists()) {
+                vehicleFile.createNewFile();
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(vehicleFile))) {
+                for (Vehicle v : vehicles) {
+                    if (v.getId().equals(targetRecord.getId())) {
+                        writer.write(v.getId() + "," + v.getModel() + "," +
+                                v.getRentPrice() + "," + true + "," + v.getCategory());
+                    } else {
+                        writer.write(v.getId() + "," + v.getModel() + "," +
+                                v.getRentPrice() + "," + v.isAvailable() + "," + v.getCategory());
+                    }
+                    writer.newLine();
+                }
+                System.out.println("Vehicle with ID " + targetRecord.getId() + " is now available for rent");
+            }
+
+            // Delete the rental record
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(rentalFile))) {
+                for (RentalRecord r : records) {
+                    if (!(r.getId().equals(id) && r.getRentalDate().equals(rentalDate))) {
+                        writer.write(r.getId() + "," + r.getModel() + "," +
+                                r.getRentPrice() + "," + r.getCustomerName() + "," +
+                                r.getIdCardNumber() + "," + r.getRentalDate() + "," +
+                                (r.getReturnDate() != null ? r.getReturnDate() : "") + "," +
+                                r.isReturned() + "," + r.getDays() + "," +
+                                (r.getPayment() != null ? r.getPayment().getMethod() : "") + "," +
+                                (r.getAddons() != null ? String.join(";", r.getAddons()) : ""));
+                        writer.newLine();
+                    }
+                }
+                System.out.println("Successfully deleted payment and rental record for rental with ID: " + id + " and date: " + rentalDate);
+            }
+        }
+    }
+
+    public void deleteRentals(String[] selectedRentals) throws IOException {
+        LinkedList<RentalRecord> records = getRentalRecords();
+        File file = new File(RENTAL_FILE_WRITABLE);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (RentalRecord r : records) {
+                String key = r.getId() + "_" + r.getRentalDate();
+                boolean keep = true;
+                for (String selected : selectedRentals) {
+                    if (key.equals(selected)) {
+                        keep = false;
+                        break;
+                    }
+                }
+                if (keep) {
+                    writer.write(r.getId() + "," + r.getModel() + "," +
+                            r.getRentPrice() + "," + r.getCustomerName() + "," +
+                            r.getIdCardNumber() + "," + r.getRentalDate() + "," +
+                            (r.getReturnDate() != null ? r.getReturnDate() : "") + "," +
+                            r.isReturned() + "," + r.getDays() + "," +
+                            (r.getPayment() != null ? r.getPayment().getMethod() : "") + "," +
+                            (r.getAddons() != null ? String.join(";", r.getAddons()) : ""));
+                    writer.newLine();
+                }
+            }
+            System.out.println("Successfully deleted " + selectedRentals.length + " rental records");
+        }
+    }
+
+    public Vehicle[] sortVehiclesByPrice(Vehicle[] vehicles) {
+        for (int i = 0; i < vehicles.length - 1; i++) {
+            int minIdx = i;
+            for (int j = i + 1; j < vehicles.length; j++) {
+                if (vehicles[j].getRentPrice() < vehicles[minIdx].getRentPrice()) {
+                    minIdx = j;
+                }
+            }
+            Vehicle temp = vehicles[minIdx];
+            vehicles[minIdx] = vehicles[i];
+            vehicles[i] = temp;
+        }
+        return vehicles;
+    }
+}
 

@@ -143,3 +143,129 @@ public class VehicleDataManager {
             writer.newLine();
         }
     }
+
+    public LinkedList<RentalRecord> getRentalRecords() throws IOException {
+        rentalRecords.clear();
+        File writableFile = new File(RENTAL_FILE_WRITABLE);
+
+        if (writableFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(writableFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.trim().isEmpty()) {
+                        String[] parts = line.split(",");
+                        if (parts.length >= 9) { // Ensure at least 9 fields (required fields)
+                            try {
+                                Payment payment = null;
+                                if (parts.length > 9 && !parts[9].trim().isEmpty()) {
+                                    payment = new Payment(parts[9], null, null); // Basic payment with method only
+                                }
+                                List<String> addons = null;
+                                if (parts.length > 10 && !parts[10].trim().isEmpty()) {
+                                    addons = Arrays.asList(parts[10].split(";"));
+                                }
+                                RentalRecord record = new RentalRecord(
+                                        parts[0], parts[1],
+                                        Double.parseDouble(parts[2]), parts[3], parts[5], parts[4],
+                                        Integer.parseInt(parts[8]), payment, addons
+                                );
+                                if (parts.length > 6 && !parts[6].trim().isEmpty()) {
+                                    record.setReturnDate(parts[6]);
+                                }
+                                if (parts.length > 7) {
+                                    record.setReturned(Boolean.parseBoolean(parts[7]));
+                                }
+                                rentalRecords.add(record);
+                            } catch (Exception e) {
+                                System.err.println("Error parsing rental record: " + line + " - " + e.getMessage());
+                                continue; // Skip malformed records
+                            }
+                        } else {
+                            System.err.println("Invalid rental record format, skipping: " + line);
+                        }
+                    }
+                }
+            }
+            System.out.println("Successfully read " + rentalRecords.size() + " rental records from writable file: " + writableFile.getAbsolutePath());
+            return rentalRecords;
+        }
+
+        try (InputStream is = getClass().getResourceAsStream(RENTAL_FILE);
+             BufferedReader reader = is != null ? new BufferedReader(new InputStreamReader(is)) : null) {
+            if (is == null) {
+                writableFile.createNewFile();
+                System.out.println("No rental records found in classpath, created empty writable file: " + writableFile.getAbsolutePath());
+                return rentalRecords;
+            }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 9) { // Ensure at least 9 fields (required fields)
+                        try {
+                            Payment payment = null;
+                            if (parts.length > 9 && !parts[9].trim().isEmpty()) {
+                                payment = new Payment(parts[9], null, null); // Basic payment with method only
+                            }
+                            List<String> addons = null;
+                            if (parts.length > 10 && !parts[10].trim().isEmpty()) {
+                                addons = Arrays.asList(parts[10].split(";"));
+                            }
+                            RentalRecord record = new RentalRecord(
+                                    parts[0], parts[1],
+                                    Double.parseDouble(parts[2]), parts[3], parts[5], parts[4],
+                                    Integer.parseInt(parts[8]), payment, addons
+                            );
+                            if (parts.length > 6 && !parts[6].trim().isEmpty()) {
+                                record.setReturnDate(parts[6]);
+                            }
+                            if (parts.length > 7) {
+                                record.setReturned(Boolean.parseBoolean(parts[7]));
+                            }
+                            rentalRecords.add(record);
+                        } catch (Exception e) {
+                            System.err.println("Error parsing rental record: " + line + " - " + e.getMessage());
+                            continue; // Skip malformed records
+                        }
+                    } else {
+                        System.err.println("Invalid rental record format, skipping: " + line);
+                    }
+                }
+            }
+            System.out.println("Successfully read " + rentalRecords.size() + " rental records from classpath resource: " + RENTAL_FILE);
+        }
+        return rentalRecords;
+    }
+
+    public void updateRentalRecord(RentalRecord updatedRecord) throws IOException {
+        LinkedList<RentalRecord> records = getRentalRecords();
+        File file = new File(RENTAL_FILE_WRITABLE);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (RentalRecord r : records) {
+                if (r.getId().equals(updatedRecord.getId()) && r.getRentalDate().equals(updatedRecord.getRentalDate())) {
+                    writer.write(updatedRecord.getId() + "," + updatedRecord.getModel() + "," +
+                            updatedRecord.getRentPrice() + "," + updatedRecord.getCustomerName() + "," +
+                            updatedRecord.getIdCardNumber() + "," + updatedRecord.getRentalDate() + "," +
+                            (updatedRecord.getReturnDate() != null ? updatedRecord.getReturnDate() : "") + "," +
+                            updatedRecord.isReturned() + "," + updatedRecord.getDays() + "," +
+                            (updatedRecord.getPayment() != null ? updatedRecord.getPayment().getMethod() : "") + "," +
+                            (updatedRecord.getAddons() != null ? String.join(";", updatedRecord.getAddons()) : ""));
+                } else {
+                    writer.write(r.getId() + "," + r.getModel() + "," +
+                            r.getRentPrice() + "," + r.getCustomerName() + "," +
+                            r.getIdCardNumber() + "," + r.getRentalDate() + "," +
+                            (r.getReturnDate() != null ? r.getReturnDate() : "") + "," +
+                            r.isReturned() + "," + r.getDays() + "," +
+                            (r.getPayment() != null ? r.getPayment().getMethod() : "") + "," +
+                            (r.getAddons() != null ? String.join(";", r.getAddons()) : ""));
+                }
+                writer.newLine();
+            }
+            System.out.println("Successfully updated rental record with ID: " + updatedRecord.getId() + " and date: " + updatedRecord.getRentalDate());
+        }
+    }
+
+

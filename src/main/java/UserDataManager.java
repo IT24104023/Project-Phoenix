@@ -102,9 +102,11 @@ public class UserDataManager {
         LinkedList<User> users = getUsers();
         for (User u : users) {
             if (u.getUsername().equals(username)) {
+                System.out.println("Successfully retrieved user: " + username);
                 return u;
             }
         }
+        System.out.println("User not found: " + username);
         return null;
     }
 }

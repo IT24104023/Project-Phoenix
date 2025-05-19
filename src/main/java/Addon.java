@@ -9,15 +9,8 @@ public class Addon {
         this.price = price;
     }
 
-    public String getAddonId() {
-        return this.addonId;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public double getPrice() {
-        return this.price;
-    }
-  }
+    // Getters
+    public String getAddonId() {return this.addonId;}
+    public String getName() {return this.name;}
+    public double getPrice() {return this.price;}
+}

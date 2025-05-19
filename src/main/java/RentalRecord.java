@@ -21,6 +21,8 @@ public class RentalRecord extends Vehicle {
         this.payment = payment;
         this.addons = addons;
     }
+
+    // Getters and setters
     public String getCustomerName() { return customerName; }
     public String getRentalDate() { return rentalDate; }
     public String getReturnDate() { return returnDate; }

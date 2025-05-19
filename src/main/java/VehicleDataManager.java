@@ -3,7 +3,6 @@ import java.util.Arrays; // Added for Arrays.asList
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 public class VehicleDataManager {
     private static final String VEHICLE_FILE = "/vehicles.txt";
     private static final String RENTAL_FILE = "/rentals.txt";
@@ -20,6 +19,7 @@ public class VehicleDataManager {
             writer.write(vehicle.getId() + "," + vehicle.getModel() + "," +
                     vehicle.getRentPrice() + "," + vehicle.isAvailable() + "," + vehicle.getCategory());
             writer.newLine();
+            System.out.println("Successfully created vehicle: " + vehicle.getModel());
         }
     }
 
@@ -45,6 +45,7 @@ public class VehicleDataManager {
                 }
             }
             if (!vehicles.isEmpty() && !writableFileOutdated) {
+                System.out.println("Successfully read " + vehicles.size() + " vehicles from writable file: " + writableFile.getAbsolutePath());
                 return vehicles.toArray(new Vehicle[0]);
             }
         }
@@ -54,6 +55,7 @@ public class VehicleDataManager {
              BufferedReader reader = is != null ? new BufferedReader(new InputStreamReader(is)) : null) {
             if (is == null) {
                 writableFile.createNewFile();
+                System.out.println("No vehicles found in classpath, created empty writable file: " + writableFile.getAbsolutePath());
                 return new Vehicle[0];
             }
             String line;
@@ -76,6 +78,7 @@ public class VehicleDataManager {
                     writer.newLine();
                 }
             }
+            System.out.println("Successfully read " + vehicles.size() + " vehicles from classpath resource: " + VEHICLE_FILE);
         }
         return vehicles.toArray(new Vehicle[0]);
     }
@@ -106,6 +109,7 @@ public class VehicleDataManager {
                         updatedVehicle.getCategory());
                 writer.newLine();
             }
+            System.out.println("Successfully updated vehicle with ID: " + updatedVehicle.getId());
         }
     }
 
@@ -123,6 +127,7 @@ public class VehicleDataManager {
                     writer.newLine();
                 }
             }
+            System.out.println("Successfully deleted vehicle with ID: " + id);
         }
     }
 
@@ -141,6 +146,7 @@ public class VehicleDataManager {
                     (record.getPayment() != null ? record.getPayment().getMethod() : "") + "," +
                     (record.getAddons() != null ? String.join(";", record.getAddons()) : ""));
             writer.newLine();
+            System.out.println("Successfully rented vehicle with ID: " + record.getId() + " to " + record.getCustomerName());
         }
     }
 
@@ -410,4 +416,3 @@ public class VehicleDataManager {
         return vehicles;
     }
 }
-
